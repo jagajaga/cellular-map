@@ -19,5 +19,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service
+            android:name=".collect.RecordingService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
     </application>
 </manifest>
