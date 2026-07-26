@@ -38,10 +38,12 @@ app/
 
 **RecordingService** (foreground service, `location` type)
 - FusedLocationProvider, 1 s interval, high accuracy.
-- `SubscriptionManager` enumerates active SIMs; one per-subscription
-  `TelephonyCallback` each for signal strength.
-- On each location fix: write one `Sample` row per active SIM with the most
-  recent signal reading for that subscription.
+- `SubscriptionManager` enumerates active SIMs; a per-subscription
+  `TelephonyManager` (`createForSubscriptionId`) each.
+- On each location fix: read `TelephonyManager.signalStrength` (the
+  system-cached latest measurement; works on API 29+, unlike
+  `TelephonyCallback` which needs 31) and write one `Sample` row per active
+  SIM.
 - Stops on user tap or when the app task is removed.
 
 **Sample** (Room entity)
