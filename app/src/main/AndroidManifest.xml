@@ -19,6 +19,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ui.SessionsActivity" android:exported="false" />
         <service
             android:name=".collect.RecordingService"
             android:exported="false"
