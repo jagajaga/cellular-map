@@ -2,6 +2,7 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -15,7 +16,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="8dp"
         app:singleSelection="true"
         app:selectionRequired="true">
 
@@ -24,17 +25,24 @@
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="SIM 1" />
+            android:text="SIM 1"
+            android:textColor="@color/mono_btn_text"
+            app:backgroundTint="@color/mono_btn_bg"
+            app:strokeColor="#FF000000" />
 
         <Button
             android:id="@+id/btnSim2"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="SIM 2" />
+            android:text="SIM 2"
+            android:textColor="@color/mono_btn_text"
+            app:backgroundTint="@color/mono_btn_bg"
+            app:strokeColor="#FF000000" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <LinearLayout
+        android:id="@+id/legendRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
@@ -46,6 +54,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="-120"
+            android:textColor="#FF000000"
             android:textSize="12sp" />
 
         <View
@@ -59,6 +68,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="-70 dBm"
+            android:textColor="#FF000000"
             android:textSize="12sp" />
     </LinearLayout>
 
@@ -70,6 +80,8 @@
         android:layout_margin="16dp"
         android:layout_marginBottom="72dp"
         android:src="@android:drawable/ic_menu_mylocation"
+        app:backgroundTint="#FFFFFFFF"
+        app:tint="#FF000000"
         app:fabSize="mini" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -79,7 +91,9 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:layout_marginBottom="72dp"
-        android:src="@android:drawable/ic_media_play" />
+        android:src="@android:drawable/ic_media_play"
+        app:backgroundTint="#FFFFFFFF"
+        app:tint="#FF000000" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabSessions"
@@ -87,7 +101,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
         android:layout_margin="16dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="8dp"
         android:src="@android:drawable/ic_menu_sort_by_size"
+        app:backgroundTint="#FFFFFFFF"
+        app:tint="#FF000000"
         app:fabSize="mini" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
