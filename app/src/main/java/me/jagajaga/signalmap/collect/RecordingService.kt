@@ -12,6 +12,7 @@ import android.content.pm.ServiceInfo
 import android.location.Location
 import android.os.IBinder
 import android.os.Looper
+import android.os.PowerManager
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import com.google.android.gms.location.LocationCallback
@@ -36,6 +37,9 @@ class RecordingService : Service() {
         const val ACTION_STOP = "stop"
         const val CHANNEL = "recording"
         const val NOTIF_ID = 1
+        private const val PREFS = "recording"
+        private const val KEY_ACTIVE = "active"
+        private const val KEY_SESSION = "sessionId"
         val running = AtomicBoolean(false)
         @Volatile var currentSessionId: Long = 0
         @Volatile var sampleCount: Int = 0
@@ -53,6 +57,8 @@ class RecordingService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val fused by lazy { LocationServices.getFusedLocationProviderClient(this) }
+    private val prefs by lazy { getSharedPreferences(PREFS, MODE_PRIVATE) }
+    private var wakeLock: PowerManager.WakeLock? = null
     private var tms: List<Pair<Int, TelephonyManager>> = emptyList() // simSlot -> per-sub TM
 
     private val callback = object : LocationCallback() {
@@ -65,27 +71,44 @@ class RecordingService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            ACTION_START -> if (!running.getAndSet(true)) startRecording()
+            ACTION_START -> if (!running.getAndSet(true)) startRecording(newSession = true)
             ACTION_STOP -> stopRecording()
+            // null intent: START_STICKY restart after the system killed the process.
+            // Resume the interrupted session so recording is never silently lost.
+            null -> if (prefs.getBoolean(KEY_ACTIVE, false) && !running.getAndSet(true)) {
+                startRecording(newSession = false)
+            }
         }
         return START_STICKY
     }
 
-    @SuppressLint("MissingPermission")
-    private fun startRecording() {
-        currentSessionId = System.currentTimeMillis()
+    @SuppressLint("MissingPermission", "WakelockTimeout")
+    private fun startRecording(newSession: Boolean) {
+        currentSessionId =
+            if (newSession) System.currentTimeMillis()
+            else prefs.getLong(KEY_SESSION, System.currentTimeMillis())
         sampleCount = 0
+        prefs.edit().putBoolean(KEY_ACTIVE, true).putLong(KEY_SESSION, currentSessionId).apply()
+
         createChannel()
         startForeground(
             NOTIF_ID, buildNotification("Recording…"),
             ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
         )
+
+        // Keep the CPU alive while the screen is off so 1s sampling never pauses.
+        wakeLock = getSystemService(PowerManager::class.java)
+            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "signalmap:recording")
+            .apply { setReferenceCounted(false); acquire() }
+
         val subMgr = getSystemService(SubscriptionManager::class.java)
         val baseTm = getSystemService(TelephonyManager::class.java)
         tms = (subMgr.activeSubscriptionInfoList ?: emptyList()).map { info ->
             info.simSlotIndex to baseTm.createForSubscriptionId(info.subscriptionId)
         }
-        val req = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000L).build()
+        val req = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000L)
+            .setMinUpdateIntervalMillis(1000L)
+            .build()
         fused.requestLocationUpdates(req, callback, Looper.getMainLooper())
     }
 
@@ -111,7 +134,10 @@ class RecordingService : Service() {
     }
 
     private fun stopRecording() {
+        prefs.edit().putBoolean(KEY_ACTIVE, false).apply()
         fused.removeLocationUpdates(callback)
+        wakeLock?.release()
+        wakeLock = null
         running.set(false)
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -124,27 +150,33 @@ class RecordingService : Service() {
     }
 
     private fun buildNotification(text: String): Notification {
-        val pi = PendingIntent.getActivity(
+        val openPi = PendingIntent.getActivity(
             this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE
+        )
+        val stopPi = PendingIntent.getService(
+            this, 1, Intent(this, RecordingService::class.java).setAction(ACTION_STOP),
+            PendingIntent.FLAG_IMMUTABLE
         )
         return Notification.Builder(this, CHANNEL)
             .setContentTitle("Signal Map")
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
-            .setContentIntent(pi)
+            .setContentIntent(openPi)
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .addAction(Notification.Action.Builder(null, "Stop", stopPi).build())
             .build()
     }
 
+    // NOTE: no onTaskRemoved override — swiping the app away must NOT stop recording.
+
     override fun onDestroy() {
+        // If the system is tearing us down mid-recording, leave KEY_ACTIVE=true so the
+        // sticky restart resumes the session; only user Stop clears it.
         fused.removeLocationUpdates(callback)
+        wakeLock?.release()
         running.set(false)
         scope.cancel()
         super.onDestroy()
-    }
-
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        stopRecording()
-        super.onTaskRemoved(rootIntent)
     }
 }

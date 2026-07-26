@@ -3,7 +3,10 @@ package me.jagajaga.signalmap.ui
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -197,8 +200,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startRecording() {
+        ensureUnrestrictedBattery()
         RecordingService.start(this)
         updateRecordIcon()
+    }
+
+    /** Ask Android to exempt us from battery optimization so background recording is never killed. */
+    private fun ensureUnrestrictedBattery() {
+        val pm = getSystemService(PowerManager::class.java)
+        if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+            try {
+                startActivity(
+                    Intent(
+                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                        Uri.parse("package:$packageName")
+                    )
+                )
+            } catch (_: Exception) {
+                // Some OEM builds hide this screen; recording still runs as a foreground service.
+            }
+        }
     }
 
     private fun updateRecordIcon() {

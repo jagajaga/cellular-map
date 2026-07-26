@@ -22,6 +22,14 @@ red→green gradient of the best-signal spots on OpenStreetMap — at any zoom.
   by max, so a good spot stays green).
 - Sessions button (top right): export any session as CSV/GeoJSON or delete it.
 
+## Background recording
+
+Recording runs as a foreground service with a permanent notification (live
+sample count + Stop button). It keeps going with the screen off, in Doze, and
+when you swipe the app away; if Android ever kills the process, the service
+restarts and resumes the same session. On first record the app asks to be
+exempted from battery optimization — accept it for guaranteed all-day logging.
+
 ## Notes
 
 - GPS accuracy is ~3–5 m; samples worse than 25 m are excluded from the map.
