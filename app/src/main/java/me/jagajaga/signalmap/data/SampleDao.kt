@@ -24,6 +24,13 @@ interface SampleDao {
     )
     suspend fun sessions(): List<SessionRow>
 
+    @Query(
+        """SELECT * FROM samples
+           WHERE flagged = 0 AND mx BETWEEN :x0 AND :x1 AND my BETWEEN :y0 AND :y1
+           LIMIT 2000"""
+    )
+    suspend fun samplesIn(x0: Int, x1: Int, y0: Int, y1: Int): List<Sample>
+
     @Query("SELECT * FROM samples WHERE sessionId = :id ORDER BY timestampMs")
     suspend fun samplesForSession(id: Long): List<Sample>
 
