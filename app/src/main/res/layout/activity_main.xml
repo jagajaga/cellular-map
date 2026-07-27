@@ -52,33 +52,33 @@
 
         <Button
             android:id="@+id/btnModeSignal"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Signal"
-            android:textColor="@color/mono_btn_text"
-            app:backgroundTint="@color/mono_btn_bg"
-            app:strokeColor="#FF000000" />
+            style="@style/ModeButton"
+            android:text="All" />
+
+        <Button
+            android:id="@+id/btnModeNr"
+            style="@style/ModeButton"
+            android:text="5G" />
 
         <Button
             android:id="@+id/btnModeLte"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="4G only"
-            android:textColor="@color/mono_btn_text"
-            app:backgroundTint="@color/mono_btn_bg"
-            app:strokeColor="#FF000000" />
+            style="@style/ModeButton"
+            android:text="4G" />
+
+        <Button
+            android:id="@+id/btnModeWcdma"
+            style="@style/ModeButton"
+            android:text="3G" />
+
+        <Button
+            android:id="@+id/btnModeGsm"
+            style="@style/ModeButton"
+            android:text="2G" />
 
         <Button
             android:id="@+id/btnModeTech"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tech"
-            android:textColor="@color/mono_btn_text"
-            app:backgroundTint="@color/mono_btn_bg"
-            app:strokeColor="#FF000000" />
+            style="@style/ModeButton"
+            android:text="Tech" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <LinearLayout

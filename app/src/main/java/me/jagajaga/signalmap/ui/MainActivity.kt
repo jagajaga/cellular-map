@@ -125,7 +125,10 @@ class MainActivity : AppCompatActivity() {
             addOnButtonCheckedListener { _, checkedId, isChecked ->
                 if (isChecked) {
                     heat.mode = when (checkedId) {
+                        R.id.btnModeNr -> HeatOverlay.Mode.NR
                         R.id.btnModeLte -> HeatOverlay.Mode.LTE
+                        R.id.btnModeWcdma -> HeatOverlay.Mode.WCDMA
+                        R.id.btnModeGsm -> HeatOverlay.Mode.GSM
                         R.id.btnModeTech -> HeatOverlay.Mode.TECH
                         else -> HeatOverlay.Mode.SIGNAL
                     }

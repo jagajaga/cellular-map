@@ -1,3 +1,15 @@
 <resources>
     <style name="Theme.SignalMap" parent="Theme.Material3.DayNight.NoActionBar" />
+
+    <style name="ModeButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingLeft">10dp</item>
+        <item name="android:paddingRight">10dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/mono_btn_text</item>
+        <item name="backgroundTint">@color/mono_btn_bg</item>
+        <item name="strokeColor">#FF000000</item>
+    </style>
 </resources>
