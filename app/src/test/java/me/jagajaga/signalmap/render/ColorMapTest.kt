@@ -16,6 +16,14 @@ class ColorMapTest {
         assertEquals(0x00, red and 0xFF)             // no blue
         assertEquals(0xFF, (green shr 8) and 0xFF)  // full green channel
     }
+    @Test fun genNormMapsGenerationsToGradient() {
+        assertEquals(0f, ColorMap.genNorm(2), 1e-6f)    // 2G -> red
+        assertEquals(0.5f, ColorMap.genNorm(3), 1e-6f)  // 3G -> yellow
+        assertEquals(1f, ColorMap.genNorm(4), 1e-6f)    // 4G/5G -> green
+        assertEquals(1f, ColorMap.genNorm(5), 1e-6f)    // clamped
+        assertEquals(0f, ColorMap.genNorm(1), 1e-6f)    // clamped
+    }
+
     @Test fun midIsYellow() {
         val y = ColorMap.argb(0.5f, 255)
         assertEquals(0xFF, (y shr 16) and 0xFF)

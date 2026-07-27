@@ -7,6 +7,9 @@ object ColorMap {
     fun norm(dbm: Int): Float =
         ((dbm - MIN_DBM) / (MAX_DBM - MIN_DBM)).coerceIn(0f, 1f)
 
+    /** Network generation (2=2G, 3=3G, 4=4G/5G) to gradient position: 2G red, 3G yellow, 4G+ green. */
+    fun genNorm(gen: Int): Float = ((gen - 2) / 2f).coerceIn(0f, 1f)
+
     /** 0 = red, 0.5 = yellow, 1 = green. */
     fun argb(t: Float, alpha: Int): Int {
         val tt = t.coerceIn(0f, 1f)

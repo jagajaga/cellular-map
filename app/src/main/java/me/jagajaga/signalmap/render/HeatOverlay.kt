@@ -30,7 +30,19 @@ class HeatOverlay(
     private val dao: SampleDao,
     private val scope: CoroutineScope
 ) : Overlay() {
+    enum class Mode {
+        /** dBm gradient over all samples. */
+        SIGNAL,
+        /** dBm gradient over 4G/5G samples only — holes mean no 4G data there. */
+        LTE,
+        /** Worst network generation per cell — green 4G/5G, yellow 3G, red 2G. */
+        TECH
+    }
+
     var simSlot: Int = 0
+        set(value) { field = value; requestRender() }
+
+    var mode: Mode = Mode.SIGNAL
         set(value) { field = value; requestRender() }
 
     private var mapRef = WeakReference<MapView>(null)
@@ -85,7 +97,9 @@ class HeatOverlay(
         val x0 = Mercator.lonToX(v.w); val x1 = Mercator.lonToX(v.e)
         val y0 = Mercator.latToY(v.n); val y1 = Mercator.latToY(v.s) // y grows southward
         if (x1 <= x0 || y1 <= y0) return
-        val cells = dao.aggregate(simSlot, shift, x0, x1, y0, y1)
+        val filterAll = if (mode == Mode.LTE) 0 else 1
+        val types = if (mode == Mode.LTE) listOf("LTE", "NR") else listOf("-")
+        val cells = dao.aggregate(simSlot, shift, x0, x1, y0, y1, filterAll, types)
 
         val bw = max(8, (v.pw * MARGIN / DOWN).toInt())
         val bh = max(8, (v.ph * MARGIN / DOWN).toInt())
@@ -99,7 +113,10 @@ class HeatOverlay(
             val centerY = (c.cy.toLong() shl shift) + (1L shl (shift - 1))
             val px = (centerX - x0) * sx
             val py = (centerY - y0) * sy
-            field.splat(px, py, ColorMap.norm(c.maxDbm), radius)
+            val value =
+                if (mode == Mode.TECH) ColorMap.genNorm(c.minGen)
+                else ColorMap.norm(c.maxDbm)
+            field.splat(px, py, value, radius)
         }
         val pixels = field.colorize()
         val bmp = Bitmap.createBitmap(pixels, bw, bh, Bitmap.Config.ARGB_8888)

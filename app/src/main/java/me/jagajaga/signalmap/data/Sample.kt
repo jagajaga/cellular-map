@@ -23,6 +23,14 @@ data class Sample(
     val flagged: Int
 )
 
-data class CellAgg(val cx: Int, val cy: Int, val maxDbm: Int, val avgDbm: Double, val n: Int)
+data class CellAgg(
+    val cx: Int,
+    val cy: Int,
+    val maxDbm: Int,
+    val avgDbm: Double,
+    val n: Int,
+    /** Worst network generation seen in the cell: 2 = 2G, 3 = 3G, 4 = 4G/5G. */
+    val minGen: Int
+)
 
 data class SessionRow(val sessionId: Long, val n: Int, val startMs: Long, val endMs: Long)

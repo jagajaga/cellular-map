@@ -10,13 +10,22 @@ interface SampleDao {
 
     @Query(
         """SELECT (mx >> :shift) AS cx, (my >> :shift) AS cy,
-                  MAX(dbm) AS maxDbm, AVG(dbm) AS avgDbm, COUNT(*) AS n
+                  MAX(dbm) AS maxDbm, AVG(dbm) AS avgDbm, COUNT(*) AS n,
+                  MIN(CASE
+                        WHEN networkType IN ('NR', 'LTE') THEN 4
+                        WHEN networkType = 'WCDMA' THEN 3
+                        ELSE 2
+                      END) AS minGen
            FROM samples
            WHERE simSlot = :sim AND flagged = 0
+             AND (:filterAll = 1 OR networkType IN (:types))
              AND mx BETWEEN :x0 AND :x1 AND my BETWEEN :y0 AND :y1
            GROUP BY cx, cy"""
     )
-    suspend fun aggregate(sim: Int, shift: Int, x0: Int, x1: Int, y0: Int, y1: Int): List<CellAgg>
+    suspend fun aggregate(
+        sim: Int, shift: Int, x0: Int, x1: Int, y0: Int, y1: Int,
+        filterAll: Int, types: List<String>
+    ): List<CellAgg>
 
     @Query(
         """SELECT sessionId, COUNT(*) AS n, MIN(timestampMs) AS startMs, MAX(timestampMs) AS endMs
