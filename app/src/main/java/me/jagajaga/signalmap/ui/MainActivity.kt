@@ -1,14 +1,19 @@
 package me.jagajaga.signalmap.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.telephony.SubscriptionManager
+import android.telephony.TelephonyManager
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -25,6 +30,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.jagajaga.signalmap.R
 import me.jagajaga.signalmap.collect.RecordingService
+import me.jagajaga.signalmap.collect.SignalReader
 import me.jagajaga.signalmap.data.AppDb
 import me.jagajaga.signalmap.data.SpotInfo
 import me.jagajaga.signalmap.render.HeatOverlay
@@ -114,6 +120,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        findViewById<MaterialButtonToggleGroup>(R.id.modeToggle).apply {
+            check(R.id.btnModeSignal)
+            addOnButtonCheckedListener { _, checkedId, isChecked ->
+                if (isChecked) {
+                    heat.mode = when (checkedId) {
+                        R.id.btnModeLte -> HeatOverlay.Mode.LTE
+                        R.id.btnModeTech -> HeatOverlay.Mode.TECH
+                        else -> HeatOverlay.Mode.SIGNAL
+                    }
+                    updateLegend(heat.mode)
+                }
+            }
+        }
+
         fabRecord = findViewById(R.id.fabRecord)
         fabRecord.setOnClickListener {
             when {
@@ -138,20 +158,88 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SessionsActivity::class.java))
         }
 
+        findViewById<FloatingActionButton>(R.id.fabRadio).setOnClickListener {
+            openRadioSettings()
+        }
+
         // ask for permissions right away on first launch
         if (!hasCorePermissions()) {
             pendingRecord = false
             permissionLauncher.launch(requiredPermissions)
         }
 
-        // periodic refresh while recording
+        // periodic refresh while recording + live network-type labels
         lifecycleScope.launch {
             while (true) {
+                updateSimLabels()
                 delay(3000)
                 if (RecordingService.running.get()) heat.requestRender()
                 updateRecordIcon()
             }
         }
+    }
+
+    private fun updateLegend(mode: HeatOverlay.Mode) {
+        val low = findViewById<TextView>(R.id.legendLow)
+        val high = findViewById<TextView>(R.id.legendHigh)
+        if (mode == HeatOverlay.Mode.TECH) {
+            low.text = "2G"
+            high.text = "4G/5G"
+        } else {
+            low.text = "-120"
+            high.text = "-70 dBm"
+        }
+    }
+
+    /** Show each SIM's current radio tech on its button, e.g. "SIM 2 · EDGE". */
+    @SuppressLint("MissingPermission")
+    private fun updateSimLabels() {
+        if (!hasCorePermissions()) return
+        val subMgr = getSystemService(SubscriptionManager::class.java) ?: return
+        val baseTm = getSystemService(TelephonyManager::class.java) ?: return
+        val infos = subMgr.activeSubscriptionInfoList ?: return
+        val btn1 = findViewById<Button>(R.id.btnSim1)
+        val btn2 = findViewById<Button>(R.id.btnSim2)
+        btn2.visibility = if (infos.any { it.simSlotIndex == 1 }) View.VISIBLE else View.GONE
+        for (info in infos) {
+            val net = SignalReader.read(baseTm.createForSubscriptionId(info.subscriptionId))?.second
+            val label = "SIM ${info.simSlotIndex + 1}" + if (net != null) " · $net" else ""
+            when (info.simSlotIndex) {
+                0 -> btn1.text = label
+                1 -> btn2.text = label
+            }
+        }
+    }
+
+    /**
+     * Open the hidden radio testing screen (*#*#4636#*#*) where "Set preferred
+     * network type" can force both SIMs to e.g. LTE-only for comparable walks.
+     * Falls back to regular mobile-network settings where the screen is hidden.
+     */
+    private fun openRadioSettings() {
+        val candidates = listOf(
+            Intent(Intent.ACTION_MAIN).setClassName(
+                "com.android.settings", "com.android.settings.TestingSettings"
+            ),
+            Intent(Intent.ACTION_MAIN).setClassName(
+                "com.android.phone", "com.android.phone.settings.RadioInfo"
+            ),
+            Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS)
+        )
+        for (intent in candidates) {
+            try {
+                startActivity(intent)
+                Toast.makeText(
+                    this,
+                    "Set 'Preferred network type' (e.g. LTE only) for each phone/SIM",
+                    Toast.LENGTH_LONG
+                ).show()
+                return
+            } catch (_: Exception) {
+                // try next candidate
+            }
+        }
+        Toast.makeText(this, "Radio settings screen not available on this phone", Toast.LENGTH_LONG).show()
     }
 
     /** Keep controls out of the status/navigation bars (edge-to-edge on Android 15). */
@@ -168,6 +256,9 @@ class MainActivity : AppCompatActivity() {
                 topMargin = bars.top + dp(8)
             }
             findViewById<View>(R.id.legendRow).updatePadding(bottom = dp(12) + bars.bottom)
+            findViewById<View>(R.id.modeToggle).updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = bars.bottom + dp(48)
+            }
             findViewById<View>(R.id.fabRecord).updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 bottomMargin = bars.bottom + dp(72)
             }

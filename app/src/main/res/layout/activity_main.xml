@@ -41,6 +41,46 @@
             app:strokeColor="#FF000000" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/modeToggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="48dp"
+        app:singleSelection="true"
+        app:selectionRequired="true">
+
+        <Button
+            android:id="@+id/btnModeSignal"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Signal"
+            android:textColor="@color/mono_btn_text"
+            app:backgroundTint="@color/mono_btn_bg"
+            app:strokeColor="#FF000000" />
+
+        <Button
+            android:id="@+id/btnModeLte"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="4G only"
+            android:textColor="@color/mono_btn_text"
+            app:backgroundTint="@color/mono_btn_bg"
+            app:strokeColor="#FF000000" />
+
+        <Button
+            android:id="@+id/btnModeTech"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tech"
+            android:textColor="@color/mono_btn_text"
+            app:backgroundTint="@color/mono_btn_bg"
+            app:strokeColor="#FF000000" />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
     <LinearLayout
         android:id="@+id/legendRow"
         android:layout_width="match_parent"
@@ -51,6 +91,7 @@
         android:padding="12dp">
 
         <TextView
+            android:id="@+id/legendLow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="-120"
@@ -65,6 +106,7 @@
             android:background="@drawable/legend_gradient" />
 
         <TextView
+            android:id="@+id/legendHigh"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="-70 dBm"
@@ -103,6 +145,18 @@
         android:layout_margin="16dp"
         android:layout_marginTop="8dp"
         android:src="@android:drawable/ic_menu_sort_by_size"
+        app:backgroundTint="#FFFFFFFF"
+        app:tint="#FF000000"
+        app:fabSize="mini" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabRadio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_margin="16dp"
+        android:layout_marginTop="64dp"
+        android:src="@android:drawable/ic_menu_preferences"
         app:backgroundTint="#FFFFFFFF"
         app:tint="#FF000000"
         app:fabSize="mini" />
