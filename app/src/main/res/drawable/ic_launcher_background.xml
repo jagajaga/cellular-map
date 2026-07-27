@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- warm canvas cream, like Kandinsky's Bauhaus-period grounds -->
+    <path
+        android:fillColor="#F5EDDC"
+        android:pathData="M0,0h108v108h-108z" />
+    <!-- subtle diagonal band -->
+    <path
+        android:fillColor="#EADFC8"
+        android:pathData="M0,108 L108,0 L108,34 L0,108z" />
+    <!-- pale blue corner field -->
+    <path
+        android:fillColor="#DCE4E8"
+        android:pathData="M0,0 L44,0 L0,44z" />
+</vector>
