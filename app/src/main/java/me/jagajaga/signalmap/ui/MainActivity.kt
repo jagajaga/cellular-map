@@ -132,6 +132,8 @@ class MainActivity : AppCompatActivity() {
                         R.id.btnModeWcdma -> HeatOverlay.Mode.WCDMA
                         R.id.btnModeGsm -> HeatOverlay.Mode.GSM
                         R.id.btnModeTech -> HeatOverlay.Mode.TECH
+                        R.id.btnModePing -> HeatOverlay.Mode.PING
+                        R.id.btnModeYt -> HeatOverlay.Mode.YT
                         else -> HeatOverlay.Mode.SIGNAL
                     }
                     updateLegend(heat.mode)
@@ -187,12 +189,11 @@ class MainActivity : AppCompatActivity() {
     private fun updateLegend(mode: HeatOverlay.Mode) {
         val low = findViewById<TextView>(R.id.legendLow)
         val high = findViewById<TextView>(R.id.legendHigh)
-        if (mode == HeatOverlay.Mode.TECH) {
-            low.text = "2G"
-            high.text = "4G/5G"
-        } else {
-            low.text = "-120"
-            high.text = "-70 dBm"
+        when (mode) {
+            HeatOverlay.Mode.TECH -> { low.text = "2G"; high.text = "4G/5G" }
+            HeatOverlay.Mode.PING -> { low.text = "600+ ms"; high.text = "0 ms" }
+            HeatOverlay.Mode.YT -> { low.text = "blocked"; high.text = "YT OK" }
+            else -> { low.text = "-120"; high.text = "-70 dBm" }
         }
     }
 
@@ -264,7 +265,7 @@ class MainActivity : AppCompatActivity() {
                 topMargin = bars.top + dp(64)
             }
             findViewById<View>(R.id.legendRow).updatePadding(bottom = dp(12) + bars.bottom)
-            findViewById<View>(R.id.modeToggle).updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            findViewById<View>(R.id.modeScroll).updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 bottomMargin = bars.bottom + dp(48)
             }
             findViewById<View>(R.id.fabRecord).updateLayoutParams<ViewGroup.MarginLayoutParams> {

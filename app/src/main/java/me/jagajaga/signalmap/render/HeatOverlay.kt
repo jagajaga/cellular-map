@@ -37,7 +37,9 @@ class HeatOverlay(
         LTE(listOf("LTE")),           // dBm, 4G only
         WCDMA(listOf("WCDMA")),       // dBm, 3G only
         GSM(listOf("GSM", "OTHER")),  // dBm, 2G/EDGE only
-        TECH(null)                    // worst generation per cell: green 4G/5G, yellow 3G, red 2G
+        TECH(null),                   // worst generation per cell: green 4G/5G, yellow 3G, red 2G
+        PING(null),                   // best internet latency per cell: green fast, red slow
+        YT(null)                      // YouTube reachability per cell: green worked, red blocked
     }
 
     var simSlot: Int = 0
@@ -110,13 +112,16 @@ class HeatOverlay(
         val sy = bh.toFloat() / (y1 - y0)
         val radius = max(2f, cellUnits * sx * 2f)
         for (c in cells) {
+            val value = when (mode) {
+                Mode.TECH -> ColorMap.genNorm(c.minGen)
+                Mode.PING -> c.minPing?.let { ColorMap.pingNorm(it) } ?: continue
+                Mode.YT -> c.ytRatio?.toFloat() ?: continue
+                else -> ColorMap.norm(c.maxDbm)
+            }
             val centerX = (c.cx.toLong() shl shift) + (1L shl (shift - 1))
             val centerY = (c.cy.toLong() shl shift) + (1L shl (shift - 1))
             val px = (centerX - x0) * sx
             val py = (centerY - y0) * sy
-            val value =
-                if (mode == Mode.TECH) ColorMap.genNorm(c.minGen)
-                else ColorMap.norm(c.maxDbm)
             field.splat(px, py, value, radius)
         }
         val pixels = field.colorize()

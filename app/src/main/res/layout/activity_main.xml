@@ -41,12 +41,20 @@
             app:strokeColor="#FF000000" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
+    <HorizontalScrollView
+        android:id="@+id/modeScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="48dp"
+        android:paddingHorizontal="8dp"
+        android:clipToPadding="false"
+        android:scrollbars="none">
+
     <com.google.android.material.button.MaterialButtonToggleGroup
         android:id="@+id/modeToggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="48dp"
         app:singleSelection="true"
         app:selectionRequired="true">
 
@@ -79,7 +87,18 @@
             android:id="@+id/btnModeTech"
             style="@style/ModeButton"
             android:text="Tech" />
+
+        <Button
+            android:id="@+id/btnModePing"
+            style="@style/ModeButton"
+            android:text="Ping" />
+
+        <Button
+            android:id="@+id/btnModeYt"
+            style="@style/ModeButton"
+            android:text="YT" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
+    </HorizontalScrollView>
 
     <LinearLayout
         android:id="@+id/legendRow"
