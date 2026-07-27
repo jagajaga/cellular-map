@@ -204,4 +204,16 @@
         app:backgroundTint="#FFFFFFFF"
         app:tint="#FF000000"
         app:fabSize="mini" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabBt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_margin="16dp"
+        android:layout_marginTop="184dp"
+        android:src="@android:drawable/stat_sys_data_bluetooth"
+        app:backgroundTint="#FFFFFFFF"
+        app:tint="#FF000000"
+        app:fabSize="mini" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

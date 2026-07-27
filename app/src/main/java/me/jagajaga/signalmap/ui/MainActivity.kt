@@ -188,6 +188,10 @@ class MainActivity : AppCompatActivity() {
         }
         styleSpeedFab(findViewById(R.id.fabSpeed))
 
+        findViewById<FloatingActionButton>(R.id.fabBt).setOnClickListener {
+            startActivity(Intent(this, BtSettingsActivity::class.java))
+        }
+
         // ask for permissions right away on first launch
         if (!hasCorePermissions()) {
             pendingRecord = false
@@ -316,6 +320,9 @@ class MainActivity : AppCompatActivity() {
             }
             findViewById<View>(R.id.fabSpeed).updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 topMargin = bars.top + dp(136)
+            }
+            findViewById<View>(R.id.fabBt).updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = bars.top + dp(200)
             }
             findViewById<View>(R.id.legendRow).updatePadding(bottom = dp(12) + bars.bottom)
             findViewById<View>(R.id.modeScroll).updateLayoutParams<ViewGroup.MarginLayoutParams> {
