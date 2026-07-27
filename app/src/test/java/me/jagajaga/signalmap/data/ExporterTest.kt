@@ -14,8 +14,16 @@ class ExporterTest {
     @Test fun csvHasHeaderAndRow() {
         val out = Exporter.csv(listOf(s))
         val lines = out.trim().lines()
-        assertEquals("sessionId,simSlot,timestampMs,lat,lon,accuracyM,dbm,networkType,flagged", lines[0])
-        assertEquals("1000,0,1721990000000,52.52,13.405,4.5,-95,LTE,0", lines[1])
+        assertEquals(
+            "sessionId,simSlot,timestampMs,lat,lon,accuracyM,dbm,networkType,flagged,pingMs,youtubeOk",
+            lines[0]
+        )
+        assertEquals("1000,0,1721990000000,52.52,13.405,4.5,-95,LTE,0,,", lines[1])
+    }
+
+    @Test fun csvIncludesProbeValues() {
+        val out = Exporter.csv(listOf(s.copy(pingMs = 45, youtubeOk = 1)))
+        assertEquals("1000,0,1721990000000,52.52,13.405,4.5,-95,LTE,0,45,1", out.trim().lines()[1])
     }
 
     @Test fun geoJsonIsFeatureCollectionWithPoint() {
@@ -24,5 +32,6 @@ class ExporterTest {
         assertTrue(out.contains("[13.405,52.52]"))
         assertTrue(out.contains("\"dbm\":-95"))
         assertTrue(out.contains("\"sim\":0"))
+        assertTrue(out.contains("\"pingMs\":null"))
     }
 }

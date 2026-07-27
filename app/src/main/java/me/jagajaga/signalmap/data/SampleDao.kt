@@ -15,7 +15,8 @@ interface SampleDao {
                         WHEN networkType IN ('NR', 'LTE') THEN 4
                         WHEN networkType = 'WCDMA' THEN 3
                         ELSE 2
-                      END) AS minGen
+                      END) AS minGen,
+                  MIN(pingMs) AS minPing, AVG(youtubeOk) AS ytRatio
            FROM samples
            WHERE simSlot = :sim AND flagged = 0
              AND (:filterAll = 1 OR networkType IN (:types))

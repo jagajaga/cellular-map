@@ -10,7 +10,13 @@ object SpotInfo {
             val best = list.maxOf { it.dbm }
             val avg = list.map { it.dbm.toDouble() }.average().roundToInt()
             val net = list.groupingBy { it.networkType }.eachCount().maxByOrNull { it.value }!!.key
-            "SIM ${slot + 1}: best $best dBm, avg $avg dBm, $net, ${list.size} samples"
+            val extra = buildString {
+                val pings = list.mapNotNull { it.pingMs }
+                if (pings.isNotEmpty()) append(", ping ${pings.average().roundToInt()} ms")
+                val yts = list.mapNotNull { it.youtubeOk }
+                if (yts.isNotEmpty()) append(if (yts.average() >= 0.5) ", YT ✓" else ", YT ✗")
+            }
+            "SIM ${slot + 1}: best $best dBm, avg $avg dBm, $net, ${list.size} samples$extra"
         }
     }
 }

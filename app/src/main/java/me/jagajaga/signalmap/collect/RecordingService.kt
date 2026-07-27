@@ -60,6 +60,7 @@ class RecordingService : Service() {
     private val prefs by lazy { getSharedPreferences(PREFS, MODE_PRIVATE) }
     private var wakeLock: PowerManager.WakeLock? = null
     private var tms: List<Pair<Int, TelephonyManager>> = emptyList() // simSlot -> per-sub TM
+    private var dataSlot: Int = -1 // slot of the SIM carrying data (probe results attach here)
 
     private val callback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
@@ -106,8 +107,14 @@ class RecordingService : Service() {
         tms = (subMgr.activeSubscriptionInfoList ?: emptyList()).map { info ->
             info.simSlotIndex to baseTm.createForSubscriptionId(info.subscriptionId)
         }
-        val req = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000L)
-            .setMinUpdateIntervalMillis(1000L)
+        dataSlot = try {
+            subMgr.getActiveSubscriptionInfo(SubscriptionManager.getDefaultDataSubscriptionId())
+                ?.simSlotIndex ?: -1
+        } catch (_: Exception) {
+            -1
+        }
+        val req = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L)
+            .setMinUpdateIntervalMillis(5000L)
             .build()
         fused.requestLocationUpdates(req, callback, Looper.getMainLooper())
     }
@@ -126,7 +133,18 @@ class RecordingService : Service() {
         }
         if (rows.isEmpty()) return
         scope.launch {
-            AppDb.get(this@RecordingService).dao().insertAll(rows)
+            // ~1 KB internet + YouTube probes on the data SIM (max ~6s, well under the 5s
+            // sample interval for the common case; results attach to the data SIM's row)
+            val probe = NetProbe.probe()
+            val enriched = rows.map { r ->
+                if (r.simSlot == dataSlot) {
+                    r.copy(
+                        pingMs = probe.pingMs,
+                        youtubeOk = probe.youtubeOk?.let { if (it) 1 else 0 }
+                    )
+                } else r
+            }
+            AppDb.get(this@RecordingService).dao().insertAll(enriched)
             sampleCount += rows.size
             getSystemService(NotificationManager::class.java)
                 .notify(NOTIF_ID, buildNotification("Recording… $sampleCount samples"))

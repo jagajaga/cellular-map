@@ -24,6 +24,13 @@ class ColorMapTest {
         assertEquals(0f, ColorMap.genNorm(1), 1e-6f)    // clamped
     }
 
+    @Test fun pingNormFastIsGreenSlowIsRed() {
+        assertEquals(1f, ColorMap.pingNorm(0), 1e-6f)
+        assertEquals(0.5f, ColorMap.pingNorm(300), 1e-6f)
+        assertEquals(0f, ColorMap.pingNorm(600), 1e-6f)
+        assertEquals(0f, ColorMap.pingNorm(2000), 1e-6f) // clamped
+    }
+
     @Test fun midIsYellow() {
         val y = ColorMap.argb(0.5f, 255)
         assertEquals(0xFF, (y shr 16) and 0xFF)

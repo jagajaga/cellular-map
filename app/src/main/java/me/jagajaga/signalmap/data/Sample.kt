@@ -20,7 +20,11 @@ data class Sample(
     val networkType: String,
     val mx: Int,
     val my: Int,
-    val flagged: Int
+    val flagged: Int,
+    /** Internet reachability latency in ms (null = not probed or offline). Data SIM only. */
+    val pingMs: Int? = null,
+    /** 1 = YouTube reachable, 0 = blocked while internet worked, null = not probed. Data SIM only. */
+    val youtubeOk: Int? = null
 )
 
 data class CellAgg(
@@ -30,7 +34,11 @@ data class CellAgg(
     val avgDbm: Double,
     val n: Int,
     /** Worst network generation seen in the cell: 2 = 2G, 3 = 3G, 4 = 4G/5G. */
-    val minGen: Int
+    val minGen: Int,
+    /** Best internet latency seen in the cell; null if never probed here. */
+    val minPing: Int?,
+    /** Share of probes where YouTube worked (0..1); null if never probed here. */
+    val ytRatio: Double?
 )
 
 data class SessionRow(val sessionId: Long, val n: Int, val startMs: Long, val endMs: Long)
