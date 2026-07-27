@@ -7,20 +7,16 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * Tiny connectivity probes (~1 KB each):
- *  - internet: generate_204 endpoint built for connectivity checks; measures latency
- *  - youtube: YouTube's own generate_204 — succeeds only if YouTube is actually reachable,
- *    which detects regional blocking even when the internet otherwise works.
+ * Single tiny probe (~1 KB) straight to YouTube's generate_204 endpoint:
+ * latency = YouTube ping; success = YouTube reachable. Failure means either
+ * no internet or YouTube blocked — both count as "YouTube doesn't work here".
  */
 object NetProbe {
     data class Result(val pingMs: Int?, val youtubeOk: Boolean?)
 
     suspend fun probe(): Result = withContext(Dispatchers.IO) {
-        val ping = latencyOf("https://connectivitycheck.gstatic.com/generate_204")
-        val youtube =
-            if (ping == null) null
-            else latencyOf("https://www.youtube.com/generate_204") != null
-        Result(ping, youtube)
+        val ping = latencyOf("https://www.youtube.com/generate_204")
+        Result(ping, ping != null)
     }
 
     private fun latencyOf(url: String): Int? = try {
