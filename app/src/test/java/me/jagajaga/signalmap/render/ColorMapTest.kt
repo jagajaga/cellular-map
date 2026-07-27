@@ -32,12 +32,11 @@ class ColorMapTest {
         assertEquals(0f, ColorMap.pingNorm(2000), 1e-6f)   // clamped
     }
 
-    @Test fun speedNormIsLogScale() {
-        assertEquals(0f, ColorMap.speedNorm(50), 1e-6f)      // <=100 kbps -> red
-        assertEquals(0f, ColorMap.speedNorm(100), 1e-6f)
-        assertEquals(0.5f, ColorMap.speedNorm(2236), 0.01f)  // log midpoint
-        assertEquals(1f, ColorMap.speedNorm(50000), 1e-6f)   // 50 Mbps -> green
-        assertEquals(1f, ColorMap.speedNorm(200000), 1e-6f)  // clamped
+    @Test fun relNormStretchesOverVisibleRange() {
+        assertEquals(0f, ColorMap.relNorm(2000, 2000, 18000), 1e-6f)   // slowest visible -> red
+        assertEquals(1f, ColorMap.relNorm(18000, 2000, 18000), 1e-6f)  // fastest visible -> green
+        assertEquals(0.5f, ColorMap.relNorm(10000, 2000, 18000), 1e-6f)
+        assertEquals(1f, ColorMap.relNorm(5000, 5000, 5000), 1e-6f)    // single value -> green
     }
 
     @Test fun midIsYellow() {

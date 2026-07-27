@@ -95,6 +95,12 @@ class MainActivity : AppCompatActivity() {
         map.controller.setCenter(GeoPoint(52.52, 13.405))
 
         heat = HeatOverlay(AppDb.get(this).dao(), lifecycleScope)
+        heat.onSpeedRange = { lo, hi ->
+            if (heat.mode == HeatOverlay.Mode.SPEED) {
+                findViewById<TextView>(R.id.legendLow).text = mbps(lo)
+                findViewById<TextView>(R.id.legendHigh).text = mbps(hi)
+            }
+        }
 
         // tap a spot -> per-SIM stats dialog (added first so other overlays get priority)
         map.overlays.add(MapEventsOverlay(object : MapEventsReceiver {
@@ -200,6 +206,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun mbps(kbps: Int): String =
+        String.format(java.util.Locale.US, "%.1f Mbps", kbps / 1000.0)
+
     private fun updateSpeedStatus() {
         val label = findViewById<TextView>(R.id.speedStatus)
         if (!RecordingService.speedTestEnabled) {
@@ -233,7 +242,7 @@ class MainActivity : AppCompatActivity() {
         when (mode) {
             HeatOverlay.Mode.TECH -> { low.text = "2G"; high.text = "4G/5G" }
             HeatOverlay.Mode.PING -> { low.text = "blocked / 1s+"; high.text = "50 ms" }
-            HeatOverlay.Mode.SPEED -> { low.text = "0.1 Mbps"; high.text = "50+ Mbps" }
+            HeatOverlay.Mode.SPEED -> { low.text = "slowest here"; high.text = "fastest here" }
             else -> { low.text = "-120"; high.text = "-70 dBm" }
         }
     }

@@ -48,6 +48,9 @@ class HeatOverlay(
     var mode: Mode = Mode.SIGNAL
         set(value) { field = value; requestRender() }
 
+    /** Called on the main thread after a SPEED render with the visible (min, max) kbps. */
+    var onSpeedRange: ((Int, Int) -> Unit)? = null
+
     private var mapRef = WeakReference<MapView>(null)
     private var bitmap: Bitmap? = null
     private var covN = 0.0
@@ -104,6 +107,12 @@ class HeatOverlay(
         val types = mode.types ?: listOf("-")
         val cells = dao.aggregate(simSlot, shift, x0, x1, y0, y1, filterAll, types)
 
+        // Speed layer normalizes red..green over the range visible right now,
+        // so local differences stay readable at any absolute speed level.
+        val speeds = if (mode == Mode.SPEED) cells.mapNotNull { it.maxSpeed } else emptyList()
+        val speedLo = speeds.minOrNull() ?: 0
+        val speedHi = speeds.maxOrNull() ?: 0
+
         val bw = max(8, (v.pw * MARGIN / DOWN).toInt())
         val bh = max(8, (v.ph * MARGIN / DOWN).toInt())
         val field = HeatField(bw, bh)
@@ -119,7 +128,7 @@ class HeatOverlay(
                     if (ratio < 0.5) 0f // YouTube mostly failed here -> red
                     else c.minPing?.let { ColorMap.pingNorm(it) } ?: 0f
                 }
-                Mode.SPEED -> c.maxSpeed?.let { ColorMap.speedNorm(it) } ?: continue
+                Mode.SPEED -> c.maxSpeed?.let { ColorMap.relNorm(it, speedLo, speedHi) } ?: continue
                 else -> ColorMap.norm(c.maxDbm)
             }
             val centerX = (c.cx.toLong() shl shift) + (1L shl (shift - 1))
@@ -134,6 +143,9 @@ class HeatOverlay(
         withContext(Dispatchers.Main) {
             bitmap = bmp
             covN = v.n; covS = v.s; covE = v.e; covW = v.w
+            if (mode == Mode.SPEED && speeds.isNotEmpty()) {
+                onSpeedRange?.invoke(speedLo, speedHi)
+            }
             map.invalidate()
         }
     }
