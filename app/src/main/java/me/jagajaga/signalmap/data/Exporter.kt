@@ -2,11 +2,11 @@ package me.jagajaga.signalmap.data
 
 object Exporter {
     fun csv(samples: List<Sample>): String = buildString {
-        appendLine("sessionId,simSlot,timestampMs,lat,lon,accuracyM,dbm,networkType,flagged,pingMs,youtubeOk")
+        appendLine("sessionId,simSlot,timestampMs,lat,lon,accuracyM,dbm,networkType,flagged,pingMs,youtubeOk,speedKbps")
         for (s in samples) {
             appendLine(
                 "${s.sessionId},${s.simSlot},${s.timestampMs},${s.lat},${s.lon},${s.accuracyM}," +
-                    "${s.dbm},${s.networkType},${s.flagged},${s.pingMs ?: ""},${s.youtubeOk ?: ""}"
+                    "${s.dbm},${s.networkType},${s.flagged},${s.pingMs ?: ""},${s.youtubeOk ?: ""},${s.speedKbps ?: ""}"
             )
         }
     }
@@ -19,7 +19,7 @@ object Exporter {
                 """{"type":"Feature","geometry":{"type":"Point","coordinates":[${s.lon},${s.lat}]},""" +
                     """"properties":{"sim":${s.simSlot},"dbm":${s.dbm},"networkType":"${s.networkType}",""" +
                     """"accuracyM":${s.accuracyM},"timestampMs":${s.timestampMs},""" +
-                    """"pingMs":${s.pingMs},"youtubeOk":${s.youtubeOk}}}"""
+                    """"pingMs":${s.pingMs},"youtubeOk":${s.youtubeOk},"speedKbps":${s.speedKbps}}}"""
             )
         }
         append("]}")

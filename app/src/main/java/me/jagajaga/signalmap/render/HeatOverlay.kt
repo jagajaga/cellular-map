@@ -38,8 +38,9 @@ class HeatOverlay(
         WCDMA(listOf("WCDMA")),       // dBm, 3G only
         GSM(listOf("GSM", "OTHER")),  // dBm, 2G/EDGE only
         TECH(null),                   // worst generation per cell: green 4G/5G, yellow 3G, red 2G
-        PING(null),                   // best internet latency per cell: green fast, red slow
-        YT(null)                      // YouTube reachability per cell: green worked, red blocked
+        PING(null),                   // best YouTube latency per cell: green fast, red slow
+        YT(null),                     // YouTube reachability per cell: green worked, red blocked
+        SPEED(null)                   // best measured downlink per cell: log scale red..green
     }
 
     var simSlot: Int = 0
@@ -116,6 +117,7 @@ class HeatOverlay(
                 Mode.TECH -> ColorMap.genNorm(c.minGen)
                 Mode.PING -> c.minPing?.let { ColorMap.pingNorm(it) } ?: continue
                 Mode.YT -> c.ytRatio?.toFloat() ?: continue
+                Mode.SPEED -> c.maxSpeed?.let { ColorMap.speedNorm(it) } ?: continue
                 else -> ColorMap.norm(c.maxDbm)
             }
             val centerX = (c.cx.toLong() shl shift) + (1L shl (shift - 1))

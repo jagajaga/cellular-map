@@ -13,6 +13,7 @@ import android.location.Location
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
+import android.os.SystemClock
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import com.google.android.gms.location.LocationCallback
@@ -43,6 +44,9 @@ class RecordingService : Service() {
         val running = AtomicBoolean(false)
         @Volatile var currentSessionId: Long = 0
         @Volatile var sampleCount: Int = 0
+        /** Toggled from the UI: when true, an adaptive speed test runs every >=30s. */
+        @Volatile var speedTestEnabled: Boolean = false
+        private const val SPEED_TEST_MIN_GAP_MS = 30_000L
 
         fun start(ctx: Context) {
             ctx.startForegroundService(
@@ -61,6 +65,7 @@ class RecordingService : Service() {
     private var wakeLock: PowerManager.WakeLock? = null
     private var tms: List<Pair<Int, TelephonyManager>> = emptyList() // simSlot -> per-sub TM
     private var dataSlot: Int = -1 // slot of the SIM carrying data (probe results attach here)
+    private var lastSpeedTestAt: Long = 0
 
     private val callback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
@@ -133,14 +138,24 @@ class RecordingService : Service() {
         }
         if (rows.isEmpty()) return
         scope.launch {
-            // ~1 KB internet + YouTube probes on the data SIM (max ~6s, well under the 5s
-            // sample interval for the common case; results attach to the data SIM's row)
+            // ~1 KB probe straight to YouTube on the data SIM: latency + reachability
             val probe = NetProbe.probe()
+            // Movement-aware speed test: at most every 30s while enabled; the test's
+            // time budget shrinks with speed so the result stays within ~10m of travel.
+            val now = SystemClock.elapsedRealtime()
+            val speed = if (
+                speedTestEnabled && probe.pingMs != null &&
+                now - lastSpeedTestAt >= SPEED_TEST_MIN_GAP_MS
+            ) {
+                lastSpeedTestAt = now
+                SpeedTest.measure(SpeedTest.movementCapMs(loc.speed))
+            } else null
             val enriched = rows.map { r ->
                 if (r.simSlot == dataSlot) {
                     r.copy(
                         pingMs = probe.pingMs,
-                        youtubeOk = probe.youtubeOk?.let { if (it) 1 else 0 }
+                        youtubeOk = probe.youtubeOk?.let { if (it) 1 else 0 },
+                        speedKbps = speed
                     )
                 } else r
             }

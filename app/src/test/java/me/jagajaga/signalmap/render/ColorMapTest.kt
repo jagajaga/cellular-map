@@ -31,6 +31,14 @@ class ColorMapTest {
         assertEquals(0f, ColorMap.pingNorm(2000), 1e-6f) // clamped
     }
 
+    @Test fun speedNormIsLogScale() {
+        assertEquals(0f, ColorMap.speedNorm(50), 1e-6f)      // <=100 kbps -> red
+        assertEquals(0f, ColorMap.speedNorm(100), 1e-6f)
+        assertEquals(0.5f, ColorMap.speedNorm(2236), 0.01f)  // log midpoint
+        assertEquals(1f, ColorMap.speedNorm(50000), 1e-6f)   // 50 Mbps -> green
+        assertEquals(1f, ColorMap.speedNorm(200000), 1e-6f)  // clamped
+    }
+
     @Test fun midIsYellow() {
         val y = ColorMap.argb(0.5f, 255)
         assertEquals(0xFF, (y shr 16) and 0xFF)

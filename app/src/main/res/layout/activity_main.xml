@@ -97,6 +97,11 @@
             android:id="@+id/btnModeYt"
             style="@style/ModeButton"
             android:text="YT" />
+
+        <Button
+            android:id="@+id/btnModeSpeed"
+            style="@style/ModeButton"
+            android:text="Spd" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
     </HorizontalScrollView>
 
@@ -176,6 +181,18 @@
         android:layout_margin="16dp"
         android:layout_marginTop="64dp"
         android:src="@android:drawable/ic_menu_preferences"
+        app:backgroundTint="#FFFFFFFF"
+        app:tint="#FF000000"
+        app:fabSize="mini" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabSpeed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_margin="16dp"
+        android:layout_marginTop="120dp"
+        android:src="@android:drawable/stat_sys_download"
         app:backgroundTint="#FFFFFFFF"
         app:tint="#FF000000"
         app:fabSize="mini" />

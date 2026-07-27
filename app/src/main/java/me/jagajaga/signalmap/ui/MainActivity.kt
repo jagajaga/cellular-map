@@ -134,6 +134,7 @@ class MainActivity : AppCompatActivity() {
                         R.id.btnModeTech -> HeatOverlay.Mode.TECH
                         R.id.btnModePing -> HeatOverlay.Mode.PING
                         R.id.btnModeYt -> HeatOverlay.Mode.YT
+                        R.id.btnModeSpeed -> HeatOverlay.Mode.SPEED
                         else -> HeatOverlay.Mode.SIGNAL
                     }
                     updateLegend(heat.mode)
@@ -169,6 +170,19 @@ class MainActivity : AppCompatActivity() {
             openRadioSettings()
         }
 
+        findViewById<FloatingActionButton>(R.id.fabSpeed).setOnClickListener { fab ->
+            RecordingService.speedTestEnabled = !RecordingService.speedTestEnabled
+            styleSpeedFab(fab as FloatingActionButton)
+            Toast.makeText(
+                this,
+                if (RecordingService.speedTestEnabled)
+                    "Speed tests ON (every 30s while recording, movement-aware)"
+                else "Speed tests OFF",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        styleSpeedFab(findViewById(R.id.fabSpeed))
+
         // ask for permissions right away on first launch
         if (!hasCorePermissions()) {
             pendingRecord = false
@@ -186,6 +200,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Inverted colors while speed testing is on: black button = active. */
+    private fun styleSpeedFab(fab: FloatingActionButton) {
+        val on = RecordingService.speedTestEnabled
+        fab.backgroundTintList = android.content.res.ColorStateList.valueOf(
+            if (on) 0xFF000000.toInt() else 0xFFFFFFFF.toInt()
+        )
+        fab.imageTintList = android.content.res.ColorStateList.valueOf(
+            if (on) 0xFFFFFFFF.toInt() else 0xFF000000.toInt()
+        )
+    }
+
     private fun updateLegend(mode: HeatOverlay.Mode) {
         val low = findViewById<TextView>(R.id.legendLow)
         val high = findViewById<TextView>(R.id.legendHigh)
@@ -193,6 +218,7 @@ class MainActivity : AppCompatActivity() {
             HeatOverlay.Mode.TECH -> { low.text = "2G"; high.text = "4G/5G" }
             HeatOverlay.Mode.PING -> { low.text = "600+ ms"; high.text = "0 ms" }
             HeatOverlay.Mode.YT -> { low.text = "blocked"; high.text = "YT OK" }
+            HeatOverlay.Mode.SPEED -> { low.text = "0.1 Mbps"; high.text = "50+ Mbps" }
             else -> { low.text = "-120"; high.text = "-70 dBm" }
         }
     }
@@ -263,6 +289,9 @@ class MainActivity : AppCompatActivity() {
             }
             findViewById<View>(R.id.fabRadio).updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 topMargin = bars.top + dp(64)
+            }
+            findViewById<View>(R.id.fabSpeed).updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = bars.top + dp(120)
             }
             findViewById<View>(R.id.legendRow).updatePadding(bottom = dp(12) + bars.bottom)
             findViewById<View>(R.id.modeScroll).updateLayoutParams<ViewGroup.MarginLayoutParams> {

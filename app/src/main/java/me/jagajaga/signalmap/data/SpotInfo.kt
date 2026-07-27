@@ -15,6 +15,10 @@ object SpotInfo {
                 if (pings.isNotEmpty()) append(", ping ${pings.average().roundToInt()} ms")
                 val yts = list.mapNotNull { it.youtubeOk }
                 if (yts.isNotEmpty()) append(if (yts.average() >= 0.5) ", YT ✓" else ", YT ✗")
+                val speeds = list.mapNotNull { it.speedKbps }
+                if (speeds.isNotEmpty()) {
+                    append(", ${String.format(java.util.Locale.US, "%.1f", speeds.max() / 1000.0)} Mbps")
+                }
             }
             "SIM ${slot + 1}: best $best dBm, avg $avg dBm, $net, ${list.size} samples$extra"
         }

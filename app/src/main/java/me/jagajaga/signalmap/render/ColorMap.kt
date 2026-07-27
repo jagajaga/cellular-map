@@ -1,11 +1,20 @@
 package me.jagajaga.signalmap.render
 
+import kotlin.math.log10
+
 object ColorMap {
     const val MIN_DBM = -120f
     const val MAX_DBM = -70f
 
     fun norm(dbm: Int): Float =
         ((dbm - MIN_DBM) / (MAX_DBM - MIN_DBM)).coerceIn(0f, 1f)
+
+    /** Downlink kbit/s to gradient position, log scale: <=100 kbps red, ~2.2 Mbps yellow, >=50 Mbps green. */
+    fun speedNorm(kbps: Int): Float {
+        if (kbps <= 100) return 0f
+        val t = (log10(kbps.toDouble()) - 2.0) / (log10(50000.0) - 2.0)
+        return t.toFloat().coerceIn(0f, 1f)
+    }
 
     /** Internet latency to gradient position: 0 ms green, 300 ms yellow, >=600 ms red. */
     fun pingNorm(ms: Int): Float = (1f - ms / 600f).coerceIn(0f, 1f)

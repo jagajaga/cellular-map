@@ -24,7 +24,9 @@ data class Sample(
     /** Internet reachability latency in ms (null = not probed or offline). Data SIM only. */
     val pingMs: Int? = null,
     /** 1 = YouTube reachable, 0 = blocked while internet worked, null = not probed. Data SIM only. */
-    val youtubeOk: Int? = null
+    val youtubeOk: Int? = null,
+    /** Downlink estimate in kbit/s from the adaptive speed test; null = not measured. Data SIM only. */
+    val speedKbps: Int? = null
 )
 
 data class CellAgg(
@@ -38,7 +40,9 @@ data class CellAgg(
     /** Best internet latency seen in the cell; null if never probed here. */
     val minPing: Int?,
     /** Share of probes where YouTube worked (0..1); null if never probed here. */
-    val ytRatio: Double?
+    val ytRatio: Double?,
+    /** Best measured downlink in the cell (kbit/s); null if never measured here. */
+    val maxSpeed: Int?
 )
 
 data class SessionRow(val sessionId: Long, val n: Int, val startMs: Long, val endMs: Long)

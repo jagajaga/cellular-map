@@ -16,7 +16,8 @@ interface SampleDao {
                         WHEN networkType = 'WCDMA' THEN 3
                         ELSE 2
                       END) AS minGen,
-                  MIN(pingMs) AS minPing, AVG(youtubeOk) AS ytRatio
+                  MIN(pingMs) AS minPing, AVG(youtubeOk) AS ytRatio,
+                  MAX(speedKbps) AS maxSpeed
            FROM samples
            WHERE simSlot = :sim AND flagged = 0
              AND (:filterAll = 1 OR networkType IN (:types))

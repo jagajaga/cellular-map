@@ -5,11 +5,11 @@ import org.junit.Test
 
 class SpotInfoTest {
     private fun sample(
-        sim: Int, dbm: Int, net: String, ping: Int? = null, yt: Int? = null
+        sim: Int, dbm: Int, net: String, ping: Int? = null, yt: Int? = null, speed: Int? = null
     ) = Sample(
         sessionId = 1, simSlot = sim, timestampMs = 0, lat = 0.0, lon = 0.0,
         accuracyM = 5f, dbm = dbm, networkType = net, mx = 0, my = 0, flagged = 0,
-        pingMs = ping, youtubeOk = yt
+        pingMs = ping, youtubeOk = yt, speedKbps = speed
     )
 
     @Test fun emptyGivesNoData() {
@@ -41,6 +41,16 @@ class SpotInfoTest {
         assertEquals(
             "SIM 1: best -90 dBm, avg -90 dBm, LTE, 2 samples, ping 50 ms, YT ✓\n" +
                 "SIM 2: best -95 dBm, avg -95 dBm, GSM, 1 samples, ping 500 ms, YT ✗",
+            out
+        )
+    }
+
+    @Test fun includesSpeedWhenPresent() {
+        val out = SpotInfo.summarize(
+            listOf(sample(0, -90, "LTE", ping = 40, yt = 1, speed = 12345))
+        )
+        assertEquals(
+            "SIM 1: best -90 dBm, avg -90 dBm, LTE, 1 samples, ping 40 ms, YT ✓, 12.3 Mbps",
             out
         )
     }
