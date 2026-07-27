@@ -39,6 +39,7 @@ import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
@@ -89,6 +90,7 @@ class MainActivity : AppCompatActivity() {
         map = findViewById(R.id.map)
         map.setTileSource(TileSourceFactory.MAPNIK)
         map.setMultiTouchControls(true)
+        map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
         map.controller.setZoom(16.0)
         map.controller.setCenter(GeoPoint(52.52, 13.405))
 
@@ -257,6 +259,9 @@ class MainActivity : AppCompatActivity() {
             }
             findViewById<View>(R.id.fabSessions).updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 topMargin = bars.top + dp(8)
+            }
+            findViewById<View>(R.id.fabRadio).updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = bars.top + dp(64)
             }
             findViewById<View>(R.id.legendRow).updatePadding(bottom = dp(12) + bars.bottom)
             findViewById<View>(R.id.modeToggle).updateLayoutParams<ViewGroup.MarginLayoutParams> {
