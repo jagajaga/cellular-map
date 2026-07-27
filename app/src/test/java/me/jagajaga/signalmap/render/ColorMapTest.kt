@@ -25,10 +25,11 @@ class ColorMapTest {
     }
 
     @Test fun pingNormFastIsGreenSlowIsRed() {
-        assertEquals(1f, ColorMap.pingNorm(0), 1e-6f)
-        assertEquals(0.5f, ColorMap.pingNorm(300), 1e-6f)
-        assertEquals(0f, ColorMap.pingNorm(600), 1e-6f)
-        assertEquals(0f, ColorMap.pingNorm(2000), 1e-6f) // clamped
+        assertEquals(1f, ColorMap.pingNorm(0), 1e-6f)      // clamped
+        assertEquals(1f, ColorMap.pingNorm(50), 1e-6f)     // 50ms or faster -> green
+        assertEquals(0.5f, ColorMap.pingNorm(525), 1e-6f)  // midpoint
+        assertEquals(0f, ColorMap.pingNorm(1000), 1e-6f)   // 1s -> red
+        assertEquals(0f, ColorMap.pingNorm(2000), 1e-6f)   // clamped
     }
 
     @Test fun speedNormIsLogScale() {

@@ -38,8 +38,7 @@ class HeatOverlay(
         WCDMA(listOf("WCDMA")),       // dBm, 3G only
         GSM(listOf("GSM", "OTHER")),  // dBm, 2G/EDGE only
         TECH(null),                   // worst generation per cell: green 4G/5G, yellow 3G, red 2G
-        PING(null),                   // best YouTube latency per cell: green fast, red slow
-        YT(null),                     // YouTube reachability per cell: green worked, red blocked
+        PING(null),                   // YouTube: red where blocked, else latency gradient
         SPEED(null)                   // best measured downlink per cell: log scale red..green
     }
 
@@ -115,8 +114,11 @@ class HeatOverlay(
         for (c in cells) {
             val value = when (mode) {
                 Mode.TECH -> ColorMap.genNorm(c.minGen)
-                Mode.PING -> c.minPing?.let { ColorMap.pingNorm(it) } ?: continue
-                Mode.YT -> c.ytRatio?.toFloat() ?: continue
+                Mode.PING -> {
+                    val ratio = c.ytRatio ?: continue
+                    if (ratio < 0.5) 0f // YouTube mostly failed here -> red
+                    else c.minPing?.let { ColorMap.pingNorm(it) } ?: 0f
+                }
                 Mode.SPEED -> c.maxSpeed?.let { ColorMap.speedNorm(it) } ?: continue
                 else -> ColorMap.norm(c.maxDbm)
             }

@@ -41,6 +41,19 @@
             app:strokeColor="#FF000000" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
+    <TextView
+        android:id="@+id/speedStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="100dp"
+        android:background="#CCFFFFFF"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="4dp"
+        android:textColor="#FF000000"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
     <HorizontalScrollView
         android:id="@+id/modeScroll"
         android:layout_width="match_parent"
@@ -90,11 +103,6 @@
 
         <Button
             android:id="@+id/btnModePing"
-            style="@style/ModeButton"
-            android:text="Ping" />
-
-        <Button
-            android:id="@+id/btnModeYt"
             style="@style/ModeButton"
             android:text="YT" />
 

@@ -16,8 +16,8 @@ object ColorMap {
         return t.toFloat().coerceIn(0f, 1f)
     }
 
-    /** Internet latency to gradient position: 0 ms green, 300 ms yellow, >=600 ms red. */
-    fun pingNorm(ms: Int): Float = (1f - ms / 600f).coerceIn(0f, 1f)
+    /** YouTube latency to gradient position: <=50 ms green, ~525 ms yellow, >=1000 ms red. */
+    fun pingNorm(ms: Int): Float = (1f - (ms - 50f) / 950f).coerceIn(0f, 1f)
 
     /** Network generation (2=2G, 3=3G, 4=4G/5G) to gradient position: 2G red, 3G yellow, 4G+ green. */
     fun genNorm(gen: Int): Float = ((gen - 2) / 2f).coerceIn(0f, 1f)

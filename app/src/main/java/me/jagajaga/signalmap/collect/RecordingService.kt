@@ -46,6 +46,9 @@ class RecordingService : Service() {
         @Volatile var sampleCount: Int = 0
         /** Toggled from the UI: when true, an adaptive speed test runs every >=30s. */
         @Volatile var speedTestEnabled: Boolean = false
+        /** Live speed-test state for the UI status label. */
+        @Volatile var speedTesting: Boolean = false
+        @Volatile var lastSpeedKbps: Int? = null
         private const val SPEED_TEST_MIN_GAP_MS = 30_000L
 
         fun start(ctx: Context) {
@@ -148,7 +151,11 @@ class RecordingService : Service() {
                 now - lastSpeedTestAt >= SPEED_TEST_MIN_GAP_MS
             ) {
                 lastSpeedTestAt = now
-                SpeedTest.measure(SpeedTest.movementCapMs(loc.speed))
+                speedTesting = true
+                val kbps = SpeedTest.measure(SpeedTest.movementCapMs(loc.speed))
+                speedTesting = false
+                if (kbps != null) lastSpeedKbps = kbps
+                kbps
             } else null
             val enriched = rows.map { r ->
                 if (r.simSlot == dataSlot) {

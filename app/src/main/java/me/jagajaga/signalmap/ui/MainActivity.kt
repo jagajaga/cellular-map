@@ -133,7 +133,6 @@ class MainActivity : AppCompatActivity() {
                         R.id.btnModeGsm -> HeatOverlay.Mode.GSM
                         R.id.btnModeTech -> HeatOverlay.Mode.TECH
                         R.id.btnModePing -> HeatOverlay.Mode.PING
-                        R.id.btnModeYt -> HeatOverlay.Mode.YT
                         R.id.btnModeSpeed -> HeatOverlay.Mode.SPEED
                         else -> HeatOverlay.Mode.SIGNAL
                     }
@@ -189,14 +188,31 @@ class MainActivity : AppCompatActivity() {
             permissionLauncher.launch(requiredPermissions)
         }
 
-        // periodic refresh while recording + live network-type labels
+        // periodic refresh while recording + live network-type labels + speed status
         lifecycleScope.launch {
             while (true) {
                 updateSimLabels()
+                updateSpeedStatus()
                 delay(3000)
                 if (RecordingService.running.get()) heat.requestRender()
                 updateRecordIcon()
             }
+        }
+    }
+
+    private fun updateSpeedStatus() {
+        val label = findViewById<TextView>(R.id.speedStatus)
+        if (!RecordingService.speedTestEnabled) {
+            label.visibility = View.GONE
+            return
+        }
+        label.visibility = View.VISIBLE
+        val last = RecordingService.lastSpeedKbps
+        label.text = when {
+            RecordingService.speedTesting -> "Speed: testing…"
+            last != null ->
+                "Speed: ${String.format(java.util.Locale.US, "%.1f", last / 1000.0)} Mbps"
+            else -> "Speed: waiting for first test…"
         }
     }
 
@@ -216,8 +232,7 @@ class MainActivity : AppCompatActivity() {
         val high = findViewById<TextView>(R.id.legendHigh)
         when (mode) {
             HeatOverlay.Mode.TECH -> { low.text = "2G"; high.text = "4G/5G" }
-            HeatOverlay.Mode.PING -> { low.text = "600+ ms"; high.text = "0 ms" }
-            HeatOverlay.Mode.YT -> { low.text = "blocked"; high.text = "YT OK" }
+            HeatOverlay.Mode.PING -> { low.text = "blocked / 1s+"; high.text = "50 ms" }
             HeatOverlay.Mode.SPEED -> { low.text = "0.1 Mbps"; high.text = "50+ Mbps" }
             else -> { low.text = "-120"; high.text = "-70 dBm" }
         }
@@ -288,20 +303,23 @@ class MainActivity : AppCompatActivity() {
                 topMargin = bars.top + dp(8)
             }
             findViewById<View>(R.id.fabRadio).updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                topMargin = bars.top + dp(64)
+                topMargin = bars.top + dp(72)
             }
             findViewById<View>(R.id.fabSpeed).updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                topMargin = bars.top + dp(120)
+                topMargin = bars.top + dp(136)
             }
             findViewById<View>(R.id.legendRow).updatePadding(bottom = dp(12) + bars.bottom)
             findViewById<View>(R.id.modeScroll).updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 bottomMargin = bars.bottom + dp(48)
             }
+            findViewById<View>(R.id.speedStatus).updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = bars.bottom + dp(100)
+            }
             findViewById<View>(R.id.fabRecord).updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = bars.bottom + dp(72)
+                bottomMargin = bars.bottom + dp(140)
             }
             findViewById<View>(R.id.fabFollow).updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = bars.bottom + dp(72)
+                bottomMargin = bars.bottom + dp(140)
             }
             insets
         }
