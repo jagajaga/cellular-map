@@ -13,18 +13,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.materialswitch.MaterialSwitch
 import me.jagajaga.signalmap.R
-import me.jagajaga.signalmap.collect.BtPrefs
+import me.jagajaga.signalmap.collect.AppPrefs
 
-class BtSettingsActivity : AppCompatActivity() {
+class SettingsActivity : AppCompatActivity() {
     private data class Row(val name: String, val mac: String)
 
     private var rows: List<Row> = emptyList()
 
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted)
-
-                loadDevices()
+            if (granted) loadDevices()
             else Toast.makeText(
                 this, "Bluetooth permission is required to list paired devices", Toast.LENGTH_LONG
             ).show()
@@ -32,12 +30,19 @@ class BtSettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_bt_settings)
+        setContentView(R.layout.activity_settings)
+
+        findViewById<MaterialSwitch>(R.id.switchSlowOnly).apply {
+            isChecked = AppPrefs.slowOnly(this@SettingsActivity)
+            setOnCheckedChangeListener { _, checked ->
+                AppPrefs.setSlowOnly(this@SettingsActivity, checked)
+            }
+        }
 
         findViewById<MaterialSwitch>(R.id.switchAutoStop).apply {
-            isChecked = BtPrefs.autoStop(this@BtSettingsActivity)
+            isChecked = AppPrefs.autoStop(this@SettingsActivity)
             setOnCheckedChangeListener { _, checked ->
-                BtPrefs.setAutoStop(this@BtSettingsActivity, checked)
+                AppPrefs.setAutoStop(this@SettingsActivity, checked)
             }
         }
 
@@ -64,11 +69,11 @@ class BtSettingsActivity : AppCompatActivity() {
             this, android.R.layout.simple_list_item_multiple_choice,
             rows.map { "${it.name}\n${it.mac}" }
         )
-        val selected = BtPrefs.devices(this)
+        val selected = AppPrefs.devices(this)
         rows.forEachIndexed { i, row -> list.setItemChecked(i, row.mac in selected) }
         list.setOnItemClickListener { _, _, _, _ ->
             val macs = rows.filterIndexed { i, _ -> list.isItemChecked(i) }.map { it.mac }.toSet()
-            BtPrefs.setDevices(this, macs)
+            AppPrefs.setDevices(this, macs)
         }
         if (rows.isEmpty()) {
             Toast.makeText(this, "No paired Bluetooth devices found", Toast.LENGTH_LONG).show()

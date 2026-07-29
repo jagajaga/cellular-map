@@ -21,7 +21,7 @@ class BtTriggerReceiver : BroadcastReceiver() {
             val device =
                 intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE) ?: return
             val address = try { device.address } catch (_: SecurityException) { return }
-            if (address !in BtPrefs.devices(context)) return
+            if (address !in AppPrefs.devices(context)) return
 
             when (intent.action) {
                 BluetoothDevice.ACTION_ACL_CONNECTED -> {
@@ -30,7 +30,7 @@ class BtTriggerReceiver : BroadcastReceiver() {
                     if (failure != null) notify(context, "Auto-record didn't start: $failure")
                 }
                 BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
-                    if (BtPrefs.autoStop(context) && RecordingService.running.get()) {
+                    if (AppPrefs.autoStop(context) && RecordingService.running.get()) {
                         RecordingService.stop(context)
                     }
                 }

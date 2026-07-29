@@ -8,23 +8,43 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Measurements"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:paddingBottom="8dp" />
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/switchSlowOnly"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Map only samples taken under 18 km/h" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Throughput drops while moving (handovers, fast fading), so fast samples are not comparable with slow ones. Samples recorded before this setting existed are kept."
+        android:textSize="13sp"
+        android:paddingBottom="20dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="Bluetooth auto-record"
         android:textSize="20sp"
         android:textStyle="bold"
         android:paddingBottom="8dp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Recording starts automatically when a checked device connects."
-        android:textSize="14sp"
-        android:paddingBottom="12dp" />
-
     <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/switchAutoStop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Stop recording when it disconnects"
+        android:text="Stop recording when it disconnects" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Recording starts automatically when a checked device connects."
+        android:textSize="13sp"
         android:paddingBottom="8dp" />
 
     <ListView

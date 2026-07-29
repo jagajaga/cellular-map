@@ -48,6 +48,13 @@ class HeatOverlay(
     var mode: Mode = Mode.SIGNAL
         set(value) { field = value; requestRender() }
 
+    /**
+     * Upper bound on movement speed (m/s) for samples to be rendered; negative = no limit.
+     * Throughput degrades with motion, so this lets the map compare like with like.
+     */
+    var motionMax: Float = -1f
+        set(value) { field = value; requestRender() }
+
     /** Called on the main thread after a SPEED render with the visible (min, max) kbps. */
     var onSpeedRange: ((Int, Int) -> Unit)? = null
 
@@ -105,7 +112,7 @@ class HeatOverlay(
         if (x1 <= x0 || y1 <= y0) return
         val filterAll = if (mode.types == null) 1 else 0
         val types = mode.types ?: listOf("-")
-        val cells = dao.aggregate(simSlot, shift, x0, x1, y0, y1, filterAll, types)
+        val cells = dao.aggregate(simSlot, shift, x0, x1, y0, y1, filterAll, types, motionMax)
 
         // Speed layer normalizes red..green over the range visible right now,
         // so local differences stay readable at any absolute speed level.

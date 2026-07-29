@@ -29,6 +29,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.jagajaga.signalmap.R
+import me.jagajaga.signalmap.collect.AppPrefs
 import me.jagajaga.signalmap.collect.RecordingService
 import me.jagajaga.signalmap.collect.SignalReader
 import me.jagajaga.signalmap.collect.SpeedStream
@@ -190,7 +191,7 @@ class MainActivity : AppCompatActivity() {
         styleSpeedFab(findViewById(R.id.fabSpeed))
 
         findViewById<FloatingActionButton>(R.id.fabBt).setOnClickListener {
-            startActivity(Intent(this, BtSettingsActivity::class.java))
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
 
         // ask for permissions right away on first launch
@@ -397,6 +398,11 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    override fun onResume() { super.onResume(); map.onResume() }
+    override fun onResume() {
+        super.onResume()
+        map.onResume()
+        // Pick up the "slow samples only" setting when returning from Settings.
+        heat.motionMax = if (AppPrefs.slowOnly(this)) AppPrefs.SLOW_MPS else -1f
+    }
     override fun onPause() { super.onPause(); map.onPause() }
 }

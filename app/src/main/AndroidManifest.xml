@@ -26,7 +26,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.SessionsActivity" android:exported="false" />
-        <activity android:name=".ui.BtSettingsActivity" android:exported="false" />
+        <activity android:name=".ui.SettingsActivity" android:exported="false" />
         <receiver android:name=".collect.BtTriggerReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
