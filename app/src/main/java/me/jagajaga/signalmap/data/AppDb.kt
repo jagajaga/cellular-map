@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Sample::class], version = 3, exportSchema = false)
+@Database(entities = [Sample::class], version = 4, exportSchema = false)
 abstract class AppDb : RoomDatabase() {
     abstract fun dao(): SampleDao
 
@@ -25,11 +25,18 @@ abstract class AppDb : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE samples ADD COLUMN speedMps REAL")
+            }
+        }
+
         @Volatile private var instance: AppDb? = null
         fun get(context: Context): AppDb = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(
                 context.applicationContext, AppDb::class.java, "signalmap.db"
-            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build().also { instance = it }
+            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .build().also { instance = it }
         }
     }
 }

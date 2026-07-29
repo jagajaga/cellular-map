@@ -25,7 +25,6 @@ object SpeedStream {
     private const val ENDPOINT = "https://speed.cloudflare.com/__down?bytes=5368709120" // 5 GB
     private const val WINDOW_MS = 1000L
     private const val STALL_MS = 4000L
-    private const val EWMA_ALPHA = 0.4
 
     @Volatile var currentKbps: Int? = null
         private set
@@ -34,14 +33,29 @@ object SpeedStream {
     @Volatile var streaming: Boolean = false
         private set
 
+    /** Current movement speed in m/s, fed from GPS fixes; drives smoothing. */
+    @Volatile var motionMps: Float = 0f
+
     private var job: Job? = null
 
     /** Rate for [bytes] transferred in [ms]. bytes*8/ms == kbit/s. Pure; unit-tested. */
     fun rateKbps(bytes: Long, ms: Long): Int = (bytes * 8.0 / max(ms, 1L)).roundToInt()
 
     /** Exponentially weighted smoothing so the readout is stable but still tracks moves. */
-    fun smooth(prev: Int?, cur: Int): Int =
-        if (prev == null) cur else (prev * (1 - EWMA_ALPHA) + cur * EWMA_ALPHA).roundToInt()
+    fun smooth(prev: Int?, cur: Int, alpha: Double): Int =
+        if (prev == null) cur else (prev * (1 - alpha) + cur * alpha).roundToInt()
+
+    /**
+     * Smoothing strength as a function of movement. Standing still, average hard for
+     * accuracy; moving, respond fast so a reading belongs to the position it was taken
+     * at instead of being smeared down the road behind it. Pure; unit-tested.
+     */
+    fun alphaFor(motionMps: Float): Double {
+        // Below ~1.5 m/s the smear over the smoothing window is smaller than GPS error
+        // itself, so keep full smoothing; ramp to no smoothing by 15 m/s (54 km/h).
+        val over = ((motionMps - 1.5) / 13.5).coerceIn(0.0, 1.0)
+        return 0.4 + 0.6 * over
+    }
 
     fun start(scope: CoroutineScope) {
         if (job?.isActive == true) return
@@ -86,7 +100,9 @@ object SpeedStream {
                     if (n > 0) lastData = now
                     val elapsed = now - windowStart
                     if (elapsed >= WINDOW_MS) {
-                        currentKbps = smooth(currentKbps, rateKbps(windowBytes, elapsed))
+                        currentKbps = smooth(
+                            currentKbps, rateKbps(windowBytes, elapsed), alphaFor(motionMps)
+                        )
                         windowBytes = 0
                         windowStart = now
                     } else if (now - lastData > STALL_MS) {

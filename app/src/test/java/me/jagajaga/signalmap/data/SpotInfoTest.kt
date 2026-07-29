@@ -5,11 +5,12 @@ import org.junit.Test
 
 class SpotInfoTest {
     private fun sample(
-        sim: Int, dbm: Int, net: String, ping: Int? = null, yt: Int? = null, speed: Int? = null
+        sim: Int, dbm: Int, net: String, ping: Int? = null, yt: Int? = null,
+        speed: Int? = null, motion: Float? = null
     ) = Sample(
         sessionId = 1, simSlot = sim, timestampMs = 0, lat = 0.0, lon = 0.0,
         accuracyM = 5f, dbm = dbm, networkType = net, mx = 0, my = 0, flagged = 0,
-        pingMs = ping, youtubeOk = yt, speedKbps = speed
+        pingMs = ping, youtubeOk = yt, speedKbps = speed, speedMps = motion
     )
 
     @Test fun emptyGivesNoData() {
@@ -53,5 +54,27 @@ class SpotInfoTest {
             "SIM 1: best -90 dBm, avg -90 dBm, LTE, 1 samples, ping 40 ms, YT ✓, 12.3 Mbps",
             out
         )
+    }
+
+    @Test fun discloseMotionOfTheBestSpeedSample() {
+        // Throughput degrades with movement, so the reading is only interpretable
+        // together with how fast the phone was going when it was taken.
+        val out = SpotInfo.summarize(
+            listOf(
+                sample(0, -90, "LTE", speed = 5000, motion = 12.5f),  // 45 km/h
+                sample(0, -90, "LTE", speed = 3000, motion = 20f)
+            )
+        )
+        assertEquals(
+            "SIM 1: best -90 dBm, avg -90 dBm, LTE, 2 samples, 5.0 Mbps at 45 km/h",
+            out
+        )
+    }
+
+    @Test fun omitsMotionWhenStandingStill() {
+        val out = SpotInfo.summarize(
+            listOf(sample(0, -90, "LTE", speed = 5000, motion = 0.3f))
+        )
+        assertEquals("SIM 1: best -90 dBm, avg -90 dBm, LTE, 1 samples, 5.0 Mbps", out)
     }
 }

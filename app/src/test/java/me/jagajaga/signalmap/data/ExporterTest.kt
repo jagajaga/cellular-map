@@ -15,16 +15,19 @@ class ExporterTest {
         val out = Exporter.csv(listOf(s))
         val lines = out.trim().lines()
         assertEquals(
-            "sessionId,simSlot,timestampMs,lat,lon,accuracyM,dbm,networkType,flagged,pingMs,youtubeOk,speedKbps",
+            "sessionId,simSlot,timestampMs,lat,lon,accuracyM,dbm,networkType,flagged," +
+                "pingMs,youtubeOk,speedKbps,speedMps",
             lines[0]
         )
-        assertEquals("1000,0,1721990000000,52.52,13.405,4.5,-95,LTE,0,,,", lines[1])
+        assertEquals("1000,0,1721990000000,52.52,13.405,4.5,-95,LTE,0,,,,", lines[1])
     }
 
     @Test fun csvIncludesProbeValues() {
-        val out = Exporter.csv(listOf(s.copy(pingMs = 45, youtubeOk = 1, speedKbps = 8000)))
+        val out = Exporter.csv(
+            listOf(s.copy(pingMs = 45, youtubeOk = 1, speedKbps = 8000, speedMps = 12.5f))
+        )
         assertEquals(
-            "1000,0,1721990000000,52.52,13.405,4.5,-95,LTE,0,45,1,8000",
+            "1000,0,1721990000000,52.52,13.405,4.5,-95,LTE,0,45,1,8000,12.5",
             out.trim().lines()[1]
         )
     }

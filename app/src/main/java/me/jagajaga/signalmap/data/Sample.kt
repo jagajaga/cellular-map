@@ -25,8 +25,14 @@ data class Sample(
     val pingMs: Int? = null,
     /** 1 = YouTube reachable, 0 = blocked while internet worked, null = not probed. Data SIM only. */
     val youtubeOk: Int? = null,
-    /** Downlink estimate in kbit/s from the adaptive speed test; null = not measured. Data SIM only. */
-    val speedKbps: Int? = null
+    /** Downlink estimate in kbit/s from the streaming measurement; null = not measured. Data SIM only. */
+    val speedKbps: Int? = null,
+    /**
+     * How fast the phone was moving (m/s) when this sample was taken. Throughput degrades
+     * with motion (handovers, CQI aging, MIMO rank loss), so a speed reading is only
+     * interpretable alongside this. Null = GPS reported no speed.
+     */
+    val speedMps: Float? = null
 )
 
 data class CellAgg(

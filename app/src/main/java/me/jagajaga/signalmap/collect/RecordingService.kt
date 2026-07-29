@@ -171,6 +171,10 @@ class RecordingService : Service() {
 
     private fun onFix(loc: Location) {
         val flagged = if (loc.accuracy > 25f) 1 else 0
+        val motion = if (loc.hasSpeed()) loc.speed else null
+        // Movement drives how much the throughput reading is smoothed: heavy averaging
+        // when still, responsive when moving so values stay tied to their position.
+        SpeedStream.motionMps = motion ?: 0f
         val rows = tms.mapNotNull { (slot, tm) ->
             val (dbm, net) = SignalReader.read(tm) ?: return@mapNotNull null
             Sample(
@@ -178,7 +182,7 @@ class RecordingService : Service() {
                 timestampMs = loc.time, lat = loc.latitude, lon = loc.longitude,
                 accuracyM = loc.accuracy, dbm = dbm, networkType = net,
                 mx = Mercator.lonToX(loc.longitude), my = Mercator.latToY(loc.latitude),
-                flagged = flagged
+                flagged = flagged, speedMps = motion
             )
         }
         if (rows.isEmpty()) return
