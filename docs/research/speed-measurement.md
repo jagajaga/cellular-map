@@ -1,7 +1,9 @@
 # Research: smart connection-speed measurement per map point
 
-Status: research only — not implemented. Companion to the ping/YouTube probes
-added in v0.6.0.
+Status: superseded — see "What shipped" at the bottom. The adaptive chunked
+design below was implemented in v0.7.0 and then replaced in v0.10.0 by
+continuous streaming, which measures throughput *at* each position instead of
+around it.
 
 ## The problem
 
@@ -84,3 +86,26 @@ Ookla-style multi-stream saturation tests.
 
 The daily budget cap is the real limiter on fast networks; on slow networks
 (the interesting areas!) tests are nearly free.
+
+## What shipped (v0.10.0): continuous streaming
+
+The discrete design has a flaw that matters for a *map*: a test occupies a
+window of time, so on the move it starts in one cell and finishes in another.
+Shrinking the window to fit the movement (v0.7.0) fixed the smearing but
+capped accuracy — and still left most positions with no measurement at all.
+
+Continuous streaming inverts it:
+
+- One long-lived download (`speed.cloudflare.com/__down?bytes=5GB`) is drained
+  to nowhere while recording, reconnecting automatically when it ends or fails.
+- Throughput is tracked over a rolling 1 s window with EWMA smoothing
+  (α = 0.4), exposed as `SpeedStream.currentKbps`.
+- Every GPS fix reads the *instantaneous* rate, so the value belongs to the
+  position where it was measured. Every sample gets a speed, not every 30th.
+- Failures are data, not gaps: a stalled or failed stream records 0 kbps —
+  "no usable throughput here" is exactly what a coverage map should show.
+
+Trade-off accepted: this saturates the link continuously, so it is strictly
+opt-in (⬇ toggle, off by default) with a live "X MB used" counter in the UI.
+The old bounded-cost design remains the right choice if a data budget ever
+becomes a hard requirement.

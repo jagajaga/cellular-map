@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 import me.jagajaga.signalmap.R
 import me.jagajaga.signalmap.collect.RecordingService
 import me.jagajaga.signalmap.collect.SignalReader
+import me.jagajaga.signalmap.collect.SpeedStream
 import me.jagajaga.signalmap.data.AppDb
 import me.jagajaga.signalmap.data.SpotInfo
 import me.jagajaga.signalmap.render.HeatOverlay
@@ -181,8 +182,8 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(
                 this,
                 if (RecordingService.speedTestEnabled)
-                    "Speed tests ON (every 30s while recording, movement-aware)"
-                else "Speed tests OFF",
+                    "Continuous speed measurement ON — uses a lot of mobile data"
+                else "Speed measurement OFF",
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -220,12 +221,14 @@ class MainActivity : AppCompatActivity() {
             return
         }
         label.visibility = View.VISIBLE
-        val last = RecordingService.lastSpeedKbps
+        val kbps = SpeedStream.currentKbps
+        val mb = SpeedStream.bytesTotal / 1_000_000.0
         label.text = when {
-            RecordingService.speedTesting -> "Speed: testing…"
-            last != null ->
-                "Speed: ${String.format(java.util.Locale.US, "%.1f", last / 1000.0)} Mbps"
-            else -> "Speed: waiting for first test…"
+            !RecordingService.running.get() -> "Speed: starts with recording"
+            kbps != null -> String.format(
+                java.util.Locale.US, "%.1f Mbps · %.0f MB used", kbps / 1000.0, mb
+            )
+            else -> "Speed: measuring…"
         }
     }
 
@@ -364,7 +367,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun startRecording() {
         ensureUnrestrictedBattery()
-        RecordingService.start(this)
+        RecordingService.start(this)?.let { failure ->
+            Toast.makeText(this, "Could not start recording: $failure", Toast.LENGTH_LONG).show()
+        }
         updateRecordIcon()
     }
 
