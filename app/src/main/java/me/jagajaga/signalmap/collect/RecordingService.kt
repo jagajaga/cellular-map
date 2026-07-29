@@ -91,6 +91,7 @@ class RecordingService : Service() {
     private var wakeLock: PowerManager.WakeLock? = null
     private var tms: List<Pair<Int, TelephonyManager>> = emptyList() // simSlot -> per-sub TM
     private var dataSlot: Int = -1 // slot of the SIM carrying data (probe results attach here)
+    private var foregroundTypes: Int = 0
 
     private val callback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
@@ -106,10 +107,8 @@ class RecordingService : Service() {
         // out cleanly if the system refuses (background-start limits, missing perms).
         try {
             createChannel()
-            startForeground(
-                NOTIF_ID,
-                buildNotification(if (running.get()) "Recording… $sampleCount samples" else "Starting…"),
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+            promoteForeground(
+                if (running.get()) "Recording… $sampleCount samples" else "Starting…"
             )
         } catch (_: Exception) {
             running.set(false)
@@ -183,7 +182,13 @@ class RecordingService : Service() {
             )
         }
         if (rows.isEmpty()) return
-        // Keep the streaming speed reading in sync with the toggle mid-session.
+        // Keep the streaming speed reading in sync with the toggle mid-session, including
+        // the foreground type — dataSync must be declared while the download runs.
+        val wantTypes = ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION or
+            if (speedTestEnabled) ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC else 0
+        if (wantTypes != foregroundTypes) {
+            try { promoteForeground("Recording… $sampleCount samples") } catch (_: Exception) { }
+        }
         if (speedTestEnabled) SpeedStream.start(scope) else SpeedStream.stop()
         scope.launch {
             // ~1 KB probe straight to YouTube on the data SIM: latency + reachability
@@ -202,8 +207,17 @@ class RecordingService : Service() {
             AppDb.get(this@RecordingService).dao().insertAll(enriched)
             sampleCount += rows.size
             try {
+                // Live speed in the notification: lets you confirm the background stream
+                // is really running without opening the app.
+                val suffix = if (speedTestEnabled) {
+                    String.format(
+                        java.util.Locale.US, " · %.1f Mbps · %.0f MB",
+                        (SpeedStream.currentKbps ?: 0) / 1000.0,
+                        SpeedStream.bytesTotal / 1_000_000.0
+                    )
+                } else ""
                 getSystemService(NotificationManager::class.java)
-                    .notify(NOTIF_ID, buildNotification("Recording… $sampleCount samples"))
+                    .notify(NOTIF_ID, buildNotification("Recording… $sampleCount samples$suffix"))
             } catch (_: Exception) {
                 // notifications denied; recording continues
             }
@@ -219,6 +233,33 @@ class RecordingService : Service() {
         running.set(false)
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+    }
+
+    /**
+     * Foreground types must cover what the service actually does: `location` for the
+     * GPS stream and `dataSync` for the continuous speed download. Without dataSync,
+     * Android 14+ throttles/blocks that transfer once the app leaves the foreground.
+     */
+    private fun promoteForeground(text: String) {
+        var types = ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+        if (speedTestEnabled) types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        startForeground(NOTIF_ID, buildNotification(text), types)
+        foregroundTypes = types
+    }
+
+    /**
+     * Android 15 caps `dataSync` foreground services at ~6h per day. When the system
+     * calls time on it, drop speed streaming and keep recording signal as location-only
+     * rather than letting the service be killed.
+     */
+    override fun onTimeout(startId: Int, fgsType: Int) {
+        SpeedStream.stop()
+        speedTestEnabled = false
+        try {
+            promoteForeground("Recording… $sampleCount samples (speed test timed out)")
+        } catch (_: Exception) {
+            stopRecording()
+        }
     }
 
     private fun createChannel() {
